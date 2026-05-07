@@ -11,7 +11,9 @@ interface ApiEnvelope<T> {
 }
 
 const request: AxiosInstance = axios.create({
-  baseURL: '/api',
+  // 默认 '/api'：dev 由 vite proxy 转发，prod 由反代处理
+  // 跨域部署时在 .env.production 改 VITE_API_BASE 为绝对 URL
+  baseURL: import.meta.env.VITE_API_BASE || '/api',
   timeout: 15_000,
 });
 

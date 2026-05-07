@@ -1,0 +1,16 @@
+{
+  "colorMode": {
+    "label": "颜色模式",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
+  },
+  "theme": {
+    "label": "主题色",
+    "default": "默认",
+    "blue": "蓝",
+    "green": "绿",
+    "rose": "玫瑰",
+    "orange": "橙"
+  }
+}

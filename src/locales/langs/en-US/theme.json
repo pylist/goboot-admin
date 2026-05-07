@@ -1,0 +1,16 @@
+{
+  "colorMode": {
+    "label": "Color mode",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "theme": {
+    "label": "Theme",
+    "default": "Default",
+    "blue": "Blue",
+    "green": "Green",
+    "rose": "Rose",
+    "orange": "Orange"
+  }
+}

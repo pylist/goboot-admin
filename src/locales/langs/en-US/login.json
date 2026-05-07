@@ -1,0 +1,12 @@
+{
+  "title": "Sign In",
+  "subtitle": "Welcome back, please sign in to your account",
+  "account": "Account",
+  "accountPlaceholder": "Enter your username or email",
+  "password": "Password",
+  "passwordPlaceholder": "Enter your password",
+  "submit": "Sign In",
+  "submitting": "Signing in...",
+  "validateRequired": "Please enter account and password",
+  "failed": "Sign in failed"
+}
