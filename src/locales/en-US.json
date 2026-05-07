@@ -13,11 +13,28 @@
   },
   "common": {
     "logout": "Log out",
-    "search": "Search"
+    "search": "Search",
+    "language": "Language"
   },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome back",
     "scaffoldHint": "Base scaffold is ready, business pages pending."
+  },
+  "theme": {
+    "colorMode": {
+      "label": "Color mode",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "theme": {
+      "label": "Theme",
+      "default": "Default",
+      "blue": "Blue",
+      "green": "Green",
+      "rose": "Rose",
+      "orange": "Orange"
+    }
   }
 }

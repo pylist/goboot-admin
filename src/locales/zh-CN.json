@@ -13,11 +13,28 @@
   },
   "common": {
     "logout": "退出登录",
-    "search": "搜索"
+    "search": "搜索",
+    "language": "语言"
   },
   "dashboard": {
     "title": "仪表盘",
     "welcome": "欢迎回来",
     "scaffoldHint": "基础框架已就绪，等待业务页面接入。"
+  },
+  "theme": {
+    "colorMode": {
+      "label": "颜色模式",
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统"
+    },
+    "theme": {
+      "label": "主题色",
+      "default": "默认",
+      "blue": "蓝",
+      "green": "绿",
+      "rose": "玫瑰",
+      "orange": "橙"
+    }
   }
 }

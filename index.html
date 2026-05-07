@@ -4,6 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin</title>
+    <script>
+      // 防 FOUC：在 Vue 启动前根据 localStorage 直接写 class，避免首屏闪烁
+      // 跟 stores/theme.ts 的 KEY 必须一致；存的是裸字符串（非 JSON）
+      (function () {
+        try {
+          var mode = localStorage.getItem('admin_color_mode') || 'system';
+          var theme = localStorage.getItem('admin_theme') || 'default';
+          var isDark =
+            mode === 'dark' ||
+            (mode === 'system' &&
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var html = document.documentElement;
+          if (isDark) html.classList.add('dark');
+          if (theme && theme !== 'default' && /^[a-z0-9_-]+$/i.test(theme)) {
+            html.classList.add('theme-' + theme);
+          }
+        } catch (e) {
+          /* 无 localStorage（隐私模式等）忽略，用默认主题 */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>
