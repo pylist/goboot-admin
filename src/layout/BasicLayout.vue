@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
   LayoutDashboard,
   LogOut,
+  Menu,
   PanelLeftClose,
   Sparkles,
   User,
@@ -27,9 +29,31 @@ import { logoutApi } from '@/api/auth';
 
 const { t } = useI18n();
 const router = useRouter();
+const route = useRoute();
 const access = useAccessStore();
 const user = useUserStore();
-const { sidebarCollapsed, toggleSidebar } = useLayout();
+const {
+  sidebarVisibleDesktop,
+  sidebarCollapsed,
+  sidebarOpenMobile,
+  isDesktop,
+  toggleSidebar,
+  toggleSidebarVisible,
+  closeMobileSidebar,
+} = useLayout();
+
+// 文字渐隐"折叠"行为只在桌面端 + visible + collapsed 时生效
+const showCollapsed = computed(
+  () => isDesktop.value && sidebarVisibleDesktop.value && sidebarCollapsed.value,
+);
+
+// 路由变化时关掉移动抽屉
+watch(() => route.fullPath, () => closeMobileSidebar());
+
+// 视口变成 desktop 时清掉 mobile 抽屉状态，避免遗留
+watch(isDesktop, (desktop) => {
+  if (desktop) closeMobileSidebar();
+});
 
 async function handleLogout() {
   try {
@@ -45,28 +69,41 @@ async function handleLogout() {
 
 <template>
   <div class="flex min-h-svh bg-background">
-    <!-- 侧边栏 -->
+    <!-- 移动端遮罩：点击关闭抽屉，desktop 永不显示 -->
+    <div
+      v-if="sidebarOpenMobile"
+      class="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm md:hidden"
+      @click="closeMobileSidebar"
+    />
+
     <!--
-      丝滑要点：
-      1. aside 加 overflow-hidden，让文字溢出时被自然裁剪
-      2. 文字常驻 DOM（不用 v-if），加 whitespace-nowrap 防换行
-      3. 不在折叠态切换 justify/padding 这类布局 class，避免位置跳变
-      4. 图标用单一组件 + transform rotate 平滑过渡
+      侧边栏多状态：
+        · mobile：fixed 定位，transform 滑入/滑出（基于 sidebarOpenMobile）
+        · desktop：relative 排版，width 在 0/16/60 三档之间过渡
+            - sidebarVisibleDesktop=false → md:w-0（整体隐藏）
+            - sidebarVisibleDesktop=true & sidebarCollapsed=true → md:w-16（icon-only）
+            - sidebarVisibleDesktop=true & sidebarCollapsed=false → md:w-60（完整）
     -->
     <aside
-      class="hidden shrink-0 flex-col overflow-hidden border-r bg-card transition-[width] duration-200 md:flex"
-      :class="sidebarCollapsed ? 'w-16' : 'w-60'"
+      class="fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 flex-col overflow-hidden border-r bg-card transition-[transform,width] duration-200 md:relative md:translate-x-0"
+      :class="[
+        sidebarOpenMobile ? 'translate-x-0' : '-translate-x-full',
+        sidebarVisibleDesktop
+          ? sidebarCollapsed
+            ? 'md:w-16'
+            : 'md:w-60'
+          : 'md:w-0 md:border-r-0',
+      ]"
     >
       <div class="flex h-16 items-center gap-2 px-4">
         <Sparkles class="size-5 shrink-0 text-primary" />
-        <!--
-          文字渐隐时序（width 动画 200ms）：
-          - 折叠：opacity 100ms 内淡出，赶在 sidebar 还宽时就消失，不会出现"半字符"
-          - 展开：等 150ms 让 sidebar 先撑开，再 150ms 淡入，期间已经够宽容下整段
-        -->
         <span
           class="whitespace-nowrap text-base font-bold tracking-tight transition-opacity"
-          :class="sidebarCollapsed ? 'opacity-0 duration-100' : 'opacity-100 duration-150 delay-150'"
+          :class="
+            showCollapsed
+              ? 'opacity-0 duration-100'
+              : 'opacity-100 duration-150 delay-150'
+          "
         >
           Admin
         </span>
@@ -75,22 +112,29 @@ async function handleLogout() {
       <nav class="flex-1 space-y-1 p-2">
         <RouterLink
           to="/dashboard"
-          :title="sidebarCollapsed ? t('dashboard.title') : ''"
+          :title="showCollapsed ? t('dashboard.title') : ''"
           class="flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
           active-class="bg-accent text-accent-foreground font-medium"
         >
           <LayoutDashboard class="size-4 shrink-0" />
           <span
             class="transition-opacity"
-            :class="sidebarCollapsed ? 'opacity-0 duration-100' : 'opacity-100 duration-150 delay-150'"
+            :class="
+              showCollapsed
+                ? 'opacity-0 duration-100'
+                : 'opacity-100 duration-150 delay-150'
+            "
           >
             {{ t('dashboard.title') }}
           </span>
         </RouterLink>
       </nav>
 
-      <!-- 折叠按钮：常驻左下，图标用 rotate 而非 v-if 切换 -->
-      <div class="p-2">
+      <!-- 折叠按钮：仅 desktop 且未被 hamburger 整体隐藏时显示 -->
+      <div
+        v-if="sidebarVisibleDesktop"
+        class="hidden p-2 md:block"
+      >
         <Button
           variant="ghost"
           size="icon"
@@ -105,11 +149,31 @@ async function handleLogout() {
       </div>
     </aside>
 
-    <!-- 右侧 -->
+    <!-- 右侧主区域 -->
     <div class="flex min-w-0 flex-1 flex-col">
-      <header class="flex h-16 items-center justify-end gap-1 border-b bg-card px-4">
-        <!-- 主题 / 颜色模式 / 语言 / 用户 -->
-        <div class="flex items-center gap-1">
+      <header class="flex h-16 items-center gap-1 border-b bg-card px-4">
+        <!-- Hamburger：跨端统一入口
+             · mobile：切抽屉
+             · desktop：整体显示/隐藏侧边栏（不是折叠到 icon） -->
+        <Button
+          variant="ghost"
+          size="icon"
+          :aria-label="
+            isDesktop
+              ? sidebarVisibleDesktop
+                ? 'Hide sidebar'
+                : 'Show sidebar'
+              : sidebarOpenMobile
+                ? 'Close menu'
+                : 'Open menu'
+          "
+          @click="toggleSidebarVisible"
+        >
+          <Menu class="size-4" />
+        </Button>
+
+        <!-- 右侧 switchers + 用户菜单 -->
+        <div class="ml-auto flex items-center gap-1">
           <ThemeSwitcher />
           <ColorModeSwitcher />
           <LangSwitcher />
